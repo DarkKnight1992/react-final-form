@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, fireEvent, cleanup } from '@testing-library/react'
-import '@testing-library/jest-dom/extend-expect'
+import 'jest-dom/extend-expect'
 import { ErrorBoundary, Toggle, wrapWith } from './testUtils'
 import Form from './ReactFinalForm'
 import Field from './Field'
@@ -294,40 +294,6 @@ describe('FormSpy', () => {
     expect(spy).toHaveBeenCalledTimes(2)
     expect(spy.mock.calls[1][0].dirty).toBe(true)
     expect(spy.mock.calls[1][0].values).toEqual({ name: 'erikras' })
-  })
-
-  it('should not rerender when onChange changes, but SHOULD use latest onChange passed', () => {
-    const spy = jest.fn()
-    const { getByTestId } = render(
-      <Form onSubmit={onSubmitMock}>
-        {({ values }) => (
-          <form>
-            <Field name="name" component="input" data-testid="name" />
-            <FormSpy
-              subscription={{ values: true }}
-              onChange={formState => {
-                spy(values.name, formState.values.name)
-              }}
-            />
-          </form>
-        )}
-      </Form>
-    )
-    expect(spy).toHaveBeenCalled()
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy.mock.calls[0]).toEqual([undefined, undefined])
-
-    fireEvent.change(getByTestId('name'), { target: { value: 'erikras' } })
-
-    expect(spy).toHaveBeenCalledTimes(2)
-    expect(spy.mock.calls[1]).toEqual([undefined, 'erikras'])
-
-    fireEvent.change(getByTestId('name'), {
-      target: { value: 'erikras rulez' }
-    })
-
-    expect(spy).toHaveBeenCalledTimes(3)
-    expect(spy.mock.calls[2]).toEqual(['erikras', 'erikras rulez'])
   })
 
   it('should not render with render prop when given onChange', () => {

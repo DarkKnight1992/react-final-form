@@ -54,8 +54,7 @@ const Field = ({
     return React.createElement(component, { ...field.input, children, ...rest })
   }
   return renderComponent(
-    { children, component, ...rest },
-    field,
+    { ...field, children, component, ...rest },
     `Field(${name})`
   )
 }

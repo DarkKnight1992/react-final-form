@@ -1,18 +1,13 @@
 import React from 'react'
-import { render, fireEvent, cleanup, act } from '@testing-library/react'
-import '@testing-library/jest-dom/extend-expect'
+import { render, fireEvent, cleanup } from '@testing-library/react'
+import 'jest-dom/extend-expect'
 import deepEqual from 'fast-deep-equal'
 import { ErrorBoundary, Toggle, wrapWith } from './testUtils'
 import { createForm } from 'final-form'
 import { Form, Field, version, withTypes } from '.'
 
 const onSubmitMock = values => {}
-const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
-async function sleep(ms) {
-  await act(async () => {
-    await timeout(ms)
-  })
-}
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 describe('ReactFinalForm', () => {
   afterEach(cleanup)
@@ -514,7 +509,7 @@ describe('ReactFinalForm', () => {
     const { getByTestId, getByText } = render(
       <Form
         onSubmit={async () => {
-          await timeout(2)
+          await sleep(2)
         }}
       >
         {({ handleSubmit }) => (
@@ -874,8 +869,22 @@ describe('ReactFinalForm', () => {
   })
 
   it('should set submitting back to false after submit', async () => {
+    /**
+     * This test causes a warning:
+     *
+     * Warning: An update to ReactFinalForm inside a test was not wrapped in act(...).
+     *
+     * ...but it's working as expected:
+     * 1) We click "Submit"
+     * 2) Submission is async and takes 1ms
+     * 3) The form's state has to go to `submitting = true` and then back to `submitting = false`
+     *
+     * That state change when the submission completes is not an "act" from the
+     * user, but an internal state change. If you have an idea of how to fix this,
+     * please submit a PR. Thanks. -@erikras
+     */
     const onSubmit = jest.fn(async () => {
-      await timeout(1)
+      sleep(1)
     })
     const recordSubmitting = jest.fn()
     const { getByText } = render(

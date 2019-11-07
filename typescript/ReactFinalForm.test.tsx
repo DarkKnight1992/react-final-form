@@ -1,7 +1,5 @@
 /* tslint:disable: no-shadowed-variable */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-import { Decorator, Mutator } from 'final-form';
+import { Mutator } from 'final-form';
 import * as React from 'react';
 import { Field, Form } from 'react-final-form';
 
@@ -133,12 +131,7 @@ function mutated() {
   );
 }
 
-interface UserForm {
-  firstName: string;
-  lastName: string;
-}
-
-const typedOnSubmit = (values: UserForm) => {
+const typedOnSubmit = (values: { firstName: string }) => {
   // tslint:disable-next-line no-console
   console.log(values);
 };
@@ -146,7 +139,7 @@ const typedOnSubmit = (values: UserForm) => {
 // with typed form data and field
 function withTypedFormData() {
   return (
-    <Form<UserForm> onSubmit={typedOnSubmit}>
+    <Form<{ firstName: string }> onSubmit={typedOnSubmit}>
       {({ handleSubmit }) => (
         <form onSubmit={handleSubmit}>
           <div>
@@ -162,27 +155,5 @@ function withTypedFormData() {
         </form>
       )}
     </Form>
-  );
-}
-
-const decorator: Decorator<UserForm> = form => {
-  return form.subscribe(({ values: { firstName } }) => firstName, {
-    values: true
-  });
-};
-
-// with typed decorator
-function withTypedDecorator() {
-  return <Form<UserForm> decorators={[decorator]} onSubmit={typedOnSubmit} />;
-}
-
-// with wrong typed decorator
-function withWrongTypedDecorator() {
-  return (
-    <Form<Omit<UserForm, 'firstName'>>
-      // $ExpectError
-      decorators={[decorator]}
-      onSubmit={noop}
-    />
   );
 }

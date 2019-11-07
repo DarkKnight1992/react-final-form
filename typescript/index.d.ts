@@ -9,6 +9,7 @@ import {
   FieldSubscription,
   FieldValidator
 } from 'final-form';
+import { Omit } from 'ts-essentials';
 
 type SupportedInputs = 'input' | 'select' | 'textarea';
 
@@ -16,15 +17,12 @@ export interface ReactContext<FormValues> {
   reactFinalForm: FormApi<FormValues>;
 }
 
-export type FieldMetaState<FieldValue> = Pick<
+export type FieldMetaState<FieldValue> = Omit<
   FieldState<FieldValue>,
-  Exclude<
-    keyof FieldState<FieldValue>,
-    'blur' | 'change' | 'focus' | 'name' | 'value'
-  >
+  'blur' | 'change' | 'focus' | 'name' | 'value'
 >;
 
-interface FieldInputProps<FieldValue, T extends HTMLElement = HTMLElement> extends AnyObject {
+interface FieldInputProps<FieldValue, T extends HTMLElement> {
   name: string;
   onBlur: (event?: React.FocusEvent<T>) => void;
   onChange: (event: React.ChangeEvent<T> | any) => void;
@@ -39,13 +37,13 @@ interface AnyObject {
   [key: string]: any;
 }
 
-export interface FieldRenderProps<FieldValue, T extends HTMLElement = HTMLElement> {
+export interface FieldRenderProps<FieldValue, T extends HTMLElement> {
   input: FieldInputProps<FieldValue, T>;
   meta: FieldMetaState<FieldValue>;
 }
 
 export interface FormRenderProps<FormValues = AnyObject>
-  extends FormState<FormValues>, RenderableProps<FormRenderProps<FormValues>> {
+  extends FormState<FormValues> {
   form: FormApi<FormValues>;
   handleSubmit: (
     event?: React.SyntheticEvent<HTMLFormElement>
@@ -67,7 +65,7 @@ export interface FormProps<FormValues = AnyObject>
   extends Config<FormValues>,
     RenderableProps<FormRenderProps<FormValues>> {
   subscription?: FormSubscription;
-  decorators?: Array<Decorator<FormValues>>;
+  decorators?: Decorator[];
   form?: FormApi<FormValues>;
   initialValuesEqual?: (a?: AnyObject, b?: AnyObject) => boolean;
 }
@@ -77,12 +75,12 @@ export interface UseFieldConfig<FieldValue> {
   allowNull?: boolean;
   beforeSubmit?: () => void | boolean;
   defaultValue?: FieldValue;
-  format?: (value: any, name: string) => any;
+  format?: (value: FieldValue, name: string) => any;
   formatOnBlur?: boolean;
   initialValue?: FieldValue;
   isEqual?: (a: any, b: any) => boolean;
   multiple?: boolean;
-  parse?: (value: FieldValue, name: string) => FieldValue;
+  parse?: (value: any, name: string) => FieldValue;
   subscription?: FieldSubscription;
   type?: string;
   validate?: FieldValidator<FieldValue>;
@@ -90,11 +88,9 @@ export interface UseFieldConfig<FieldValue> {
   value?: FieldValue;
 }
 
-export interface FieldProps<
-  FieldValue,
-  RP extends FieldRenderProps<FieldValue, T>,
-  T extends HTMLElement = HTMLElement
-> extends UseFieldConfig<FieldValue>, RenderableProps<RP> {
+export interface FieldProps<FieldValue, T extends HTMLElement>
+  extends UseFieldConfig<FieldValue>,
+    RenderableProps<FieldRenderProps<FieldValue, T>> {
   name: string;
   [otherProp: string]: any;
 }
@@ -108,15 +104,8 @@ export interface FormSpyProps<FormValues = AnyObject>
   extends UseFormStateParams<FormValues>,
     RenderableProps<FormSpyRenderProps<FormValues>> {}
 
-export const Field: <
-  FieldValue = any,
-  RP extends FieldRenderProps<FieldValue, T> = FieldRenderProps<
-    any,
-    HTMLElement
-  >,
-  T extends HTMLElement = HTMLElement
->(
-  props: FieldProps<FieldValue, RP, T>
+export const Field: <FieldValue = any, T extends HTMLElement = HTMLElement>(
+  props: FieldProps<FieldValue, T>
 ) => React.ReactElement;
 export const Form: <FormValues = AnyObject>(
   props: FormProps<FormValues>

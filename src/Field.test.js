@@ -1,18 +1,12 @@
 import React from 'react'
 import { render, fireEvent, cleanup, act } from '@testing-library/react'
-import '@testing-library/jest-dom/extend-expect'
+import 'jest-dom/extend-expect'
 import { ErrorBoundary, Toggle, wrapWith } from './testUtils'
 import Form from './ReactFinalForm'
 import Field from './Field'
 
 const onSubmitMock = values => {}
-
-const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
-async function sleep(ms) {
-  await act(async () => {
-    await timeout(ms)
-  })
-}
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 describe('Field', () => {
   afterEach(cleanup)
@@ -291,7 +285,7 @@ describe('Field', () => {
       <Form onSubmit={onSubmitMock} subscription={{ values: true }}>
         {() => (
           <form>
-            <Field name="name" format={format} formatOnBlur initialValue="">
+            <Field name="name" format={format} formatOnBlur>
               {({ input }) => (
                 <input
                   {...input}
@@ -382,44 +376,6 @@ describe('Field', () => {
     // This test is mostly for code coverage. Is there a way to assure that the value prop
     // passed to the <select> is []?
     expect(getByTestId('name').value).toBe('')
-  })
-
-  it('should pass multiple through to custom components', () => {
-    const CustomSelect = jest.fn(({ input }) => <select {...input} />)
-    render(
-      <Form
-        onSubmit={onSubmitMock}
-        initialValues={{ name: [] }}
-        subscription={{ values: true }}
-      >
-        {() => (
-          <form>
-            <Field name="name" component={CustomSelect} multiple />
-          </form>
-        )}
-      </Form>
-    )
-
-    expect(CustomSelect).toHaveBeenCalled()
-    expect(CustomSelect).toHaveBeenCalledTimes(1)
-    expect(CustomSelect.mock.calls[0][0].input.multiple).toBe(true)
-  })
-
-  it('should not pass an undefined type through to the input', () => {
-    const MyInput = jest.fn(({ input }) => <input {...input} />)
-    render(
-      <Form onSubmit={onSubmitMock} subscription={{ values: true }}>
-        {() => (
-          <form>
-            <Field name="name" component={MyInput} multiple />
-          </form>
-        )}
-      </Form>
-    )
-
-    expect(MyInput).toHaveBeenCalled()
-    expect(MyInput).toHaveBeenCalledTimes(1)
-    expect(MyInput.mock.calls[0][0].input).not.toHaveProperty('type')
   })
 
   it('should optionally allow null values', () => {
@@ -578,54 +534,6 @@ describe('Field', () => {
     expect(getByTestId('error')).toHaveTextContent('SHOULD BE UPPERCASE!')
     fireEvent.change(getByTestId('name'), { target: { value: 'ERIKRAS' } })
     expect(getByTestId('error')).toHaveTextContent('')
-  })
-
-  it('should allow changing field-level validation function with a new function', () => {
-    const createValidator = isRequired =>
-      isRequired ? value => (value ? undefined : 'Required') : undefined
-
-    const Error = ({ name }) => (
-      <Field name={name} subscription={{ error: true }}>
-        {({ meta: { error } }) => <div data-testid="error2">{error}</div>}
-      </Field>
-    )
-    const { getByTestId, getByText } = render(
-      <Toggle>
-        {isRequired => (
-          <Form onSubmit={onSubmitMock}>
-            {({ handleSubmit }) => (
-              <form onSubmit={handleSubmit}>
-                <Field
-                  name="name"
-                  validate={createValidator(isRequired)}
-                  key={isRequired ? 1 : 0}
-                >
-                  {({ input, meta }) => (
-                    <div>
-                      <input {...input} data-testid="name" />
-                      <div data-testid="error">{meta.error}</div>
-                    </div>
-                  )}
-                </Field>
-                <Error name="name" standalone />
-              </form>
-            )}
-          </Form>
-        )}
-      </Toggle>
-    )
-    expect(getByTestId('error')).toHaveTextContent('')
-    expect(getByTestId('error2')).toHaveTextContent('')
-    debugger
-    fireEvent.click(getByText('Toggle'))
-    expect(getByTestId('error')).toHaveTextContent('Required')
-    expect(getByTestId('error2')).toHaveTextContent('Required')
-    fireEvent.click(getByText('Toggle'))
-    expect(getByTestId('error')).toHaveTextContent('')
-    expect(getByTestId('error2')).toHaveTextContent('')
-    fireEvent.click(getByText('Toggle'))
-    expect(getByTestId('error')).toHaveTextContent('Required')
-    expect(getByTestId('error2')).toHaveTextContent('Required')
   })
 
   it('should not rerender if validateFields is !== every time', () => {
@@ -868,34 +776,6 @@ describe('Field', () => {
   })
 
   it('should use isEqual to calculate dirty/pristine', () => {
-    const isEqual = (a, b) => (a && a.toUpperCase()) === (b && b.toUpperCase())
-    const { getByTestId } = render(
-      <Form onSubmit={onSubmitMock} initialValues={{ name: 'bob' }}>
-        {() => (
-          <form>
-            <Field name="name" isEqual={isEqual}>
-              {({ input, meta }) => (
-                <div>
-                  <div data-testid="dirty">
-                    {meta.dirty ? 'Dirty' : 'Pristine'}
-                  </div>
-                  <input {...input} data-testid="input" />
-                </div>
-              )}
-            </Field>
-          </form>
-        )}
-      </Form>
-    )
-    expect(getByTestId('input').value).toBe('bob')
-    expect(getByTestId('dirty')).toHaveTextContent('Pristine')
-    fireEvent.change(getByTestId('input'), { target: { value: 'bobby' } })
-    expect(getByTestId('dirty')).toHaveTextContent('Dirty')
-    fireEvent.change(getByTestId('input'), { target: { value: 'BOB' } })
-    expect(getByTestId('dirty')).toHaveTextContent('Pristine')
-  })
-
-  it('should be able to use inline isEqual to calculate dirty/pristine without falling into infinite rerender loop', () => {
     const { getByTestId } = render(
       <Form onSubmit={onSubmitMock} initialValues={{ name: 'bob' }}>
         {() => (
@@ -1082,7 +962,7 @@ describe('Field', () => {
               name="name"
               component="input"
               validate={async value => {
-                await timeout(5)
+                await sleep(5)
                 return value === 'erikras' ? 'Username taken' : undefined
               }}
               data-testid="name"
@@ -1120,38 +1000,5 @@ describe('Field', () => {
     await sleep(6)
 
     expect(getByTestId('validating')).toHaveTextContent('Not Validating')
-  })
-
-  it('not call record-level validation on Field mount', () => {
-    const validate = jest.fn()
-    const { getByText } = render(
-      <Toggle>
-        {showOtherFields => (
-          <Form onSubmit={onSubmitMock} validate={validate}>
-            {({ handleSubmit }) => (
-              <form onSubmit={handleSubmit}>
-                <Field name="firstName" component="input" />
-                <Field name="lastName" component="input" />
-                <Field name="email" component="input" />
-                <Field name="street" component="input" />
-                <Field name="city" component="input" />
-                {showOtherFields && (
-                  <React.Fragment>
-                    <Field name="friend.firstName" component="input" />
-                    <Field name="friend.lastName" component="input" />
-                    <Field name="friend.email" component="input" />
-                    <Field name="friend.street" component="input" />
-                    <Field name="friend.city" component="input" />
-                  </React.Fragment>
-                )}
-              </form>
-            )}
-          </Form>
-        )}
-      </Toggle>
-    )
-    expect(validate).toHaveBeenCalledTimes(1)
-    fireEvent.click(getByText('Toggle'))
-    expect(validate).toHaveBeenCalledTimes(1)
   })
 })

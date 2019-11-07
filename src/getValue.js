@@ -29,7 +29,9 @@ const getValue = (
     return (event.nativeEvent: any).text
   }
   const detypedEvent: any = event
-  const { target: { type, value, checked } } = detypedEvent
+  const {
+    target: { type, value, checked }
+  } = detypedEvent
   switch (type) {
     case 'checkbox':
       if (valueProp !== undefined) {

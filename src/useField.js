@@ -12,7 +12,6 @@ import isReactNative from './isReactNative'
 import getValue from './getValue'
 import useForm from './useForm'
 import useLatest from './useLatest'
-import { addLazyFieldMetaState } from './getters'
 
 const all: FieldSubscription = fieldSubscriptionItems.reduce((result, key) => {
   result[key] = true
@@ -24,56 +23,49 @@ const defaultFormat = (value: ?any, name: string) =>
 const defaultParse = (value: ?any, name: string) =>
   value === '' ? undefined : value
 
-const defaultIsEqual = (a: any, b: any): boolean => a === b
-
 function useField<FormValues: FormValuesShape>(
   name: string,
-  config: UseFieldConfig = {}
-): FieldRenderProps {
-  const {
+  {
     afterSubmit,
     allowNull,
+    beforeSubmit,
     component,
     defaultValue,
     format = defaultFormat,
     formatOnBlur,
     initialValue,
+    isEqual,
     multiple,
     parse = defaultParse,
     subscription = all,
     type,
+    validate,
     validateFields,
     value: _value
-  } = config
+  }: UseFieldConfig = {}
+): FieldRenderProps {
   const form: FormApi<FormValues> = useForm<FormValues>('useField')
 
-  const configRef = useLatest(config)
+  const validateRef = useLatest(validate)
+
+  const beforeSubmitRef = useLatest(() => {
+    if (formatOnBlur) {
+      const formatted = format(state.value, state.name)
+      if (formatted !== state.value) {
+        state.change(formatted)
+      }
+    }
+    return beforeSubmit && beforeSubmit()
+  })
 
   const register = (callback: FieldState => void) =>
     form.registerField(name, callback, subscription, {
       afterSubmit,
-      beforeSubmit: () => {
-        const {
-          beforeSubmit,
-          formatOnBlur,
-          format = defaultFormat
-        } = configRef.current
-
-        if (formatOnBlur) {
-          const { value } = ((form.getFieldState(state.name): any): FieldState)
-          const formatted = format(value, state.name)
-
-          if (formatted !== value) {
-            state.change(formatted)
-          }
-        }
-
-        return beforeSubmit && beforeSubmit()
-      },
+      beforeSubmit: () => beforeSubmitRef.current(),
       defaultValue,
-      getValidator: () => configRef.current.validate,
+      getValidator: () => validateRef.current,
       initialValue,
-      isEqual: (a, b) => (configRef.current.isEqual || defaultIsEqual)(a, b),
+      isEqual,
       validateFields
     })
 
@@ -113,7 +105,8 @@ function useField<FormValues: FormValuesShape>(
       // If we want to allow inline fat-arrow field-level validation functions, we
       // cannot reregister field every time validate function !==.
       // validate,
-      initialValue
+      initialValue,
+      isEqual
       // The validateFields array is often passed as validateFields={[]}, creating
       // a !== new array every time. If it needs to be changed, a rerender/reregister
       // can be forced by changing the key prop
@@ -133,12 +126,16 @@ function useField<FormValues: FormValuesShape>(
            * before calling `onBlur()`, but before the field has had a chance to receive
            * the value update from Final Form.
            */
-          const fieldState: any = form.getFieldState(state.name)
-          state.change(format(fieldState.value, state.name))
+          const fieldState = form.getFieldState(state.name)
+          // this ternary is primarily to appease the Flow gods
+          // istanbul ignore next
+          state.change(
+            format(fieldState ? fieldState.value : state.value, state.name)
+          )
         }
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [state.name, format, formatOnBlur]
+      [state.name, state.value, format, formatOnBlur]
     ),
     onChange: React.useCallback(
       (event: SyntheticInputEvent<*> | any) => {
@@ -179,49 +176,52 @@ function useField<FormValues: FormValuesShape>(
     }, [])
   }
 
-  const meta = {}
-  addLazyFieldMetaState(meta, state)
-  const input: FieldInputProps = {
-    name,
-    get value() {
-      let value = state.value
-      if (formatOnBlur) {
-        if (component === 'input') {
-          value = defaultFormat(value, name)
-        }
-      } else {
-        value = format(value, name)
-      }
-      if (value === null && !allowNull) {
-        value = ''
-      }
-      if (type === 'checkbox' || type === 'radio') {
-        return _value
-      } else if (component === 'select' && multiple) {
-        return value || []
-      }
-      return value
-    },
-    get checked() {
-      if (type === 'checkbox') {
-        if (_value === undefined) {
-          return !!state.value
-        } else {
-          return !!(Array.isArray(state.value) && ~state.value.indexOf(_value))
-        }
-      } else if (type === 'radio') {
-        return state.value === _value
-      }
-      return undefined
-    },
-    ...handlers
+  let { blur, change, focus, value, name: ignoreName, ...otherState } = state
+  const meta = {
+    // this is to appease the Flow gods
+    active: otherState.active,
+    data: otherState.data,
+    dirty: otherState.dirty,
+    dirtySinceLastSubmit: otherState.dirtySinceLastSubmit,
+    error: otherState.error,
+    initial: otherState.initial,
+    invalid: otherState.invalid,
+    length: otherState.length,
+    modified: otherState.modified,
+    pristine: otherState.pristine,
+    submitError: otherState.submitError,
+    submitFailed: otherState.submitFailed,
+    submitSucceeded: otherState.submitSucceeded,
+    submitting: otherState.submitting,
+    touched: otherState.touched,
+    valid: otherState.valid,
+    validating: otherState.validating,
+    visited: otherState.visited
   }
-
-  if (multiple) {
-    input.multiple = multiple
+  if (formatOnBlur) {
+    if (component === 'input') {
+      value = defaultFormat(value, name)
+    }
+  } else {
+    value = format(value, name)
   }
-  if (type !== undefined) {
-    input.type = type
+  if (value === null && !allowNull) {
+    value = ''
+  }
+  const input: FieldInputProps = { name, value, type, ...handlers }
+  if (type === 'checkbox') {
+    if (_value === undefined) {
+      input.checked = !!value
+    } else {
+      input.checked = !!(Array.isArray(value) && ~value.indexOf(_value))
+      input.value = _value
+    }
+  } else if (type === 'radio') {
+    input.checked = value === _value
+    input.value = _value
+  } else if (component === 'select' && multiple) {
+    input.value = input.value || []
+    input.multiple = true
   }
 
   const renderProps: FieldRenderProps = { input, meta } // assign to force Flow check

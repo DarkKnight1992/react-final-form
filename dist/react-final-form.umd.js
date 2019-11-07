@@ -1,110 +1,86 @@
-;(function(global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined'
-    ? factory(exports, require('react'), require('final-form'))
-    : typeof define === 'function' && define.amd
-    ? define(['exports', 'react', 'final-form'], factory)
-    : ((global = global || self),
-      factory(
-        (global['react-final-form'] = {}),
-        global.React,
-        global.FinalForm
-      ))
-})(this, function(exports, React, finalForm) {
-  'use strict'
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react'), require('final-form')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'react', 'final-form'], factory) :
+  (global = global || self, factory(global['react-final-form'] = {}, global.React, global.FinalForm));
+}(this, function (exports, React, finalForm) { 'use strict';
 
-  var React__default = 'default' in React ? React['default'] : React
+  var React__default = 'default' in React ? React['default'] : React;
 
   function _extends() {
-    _extends =
-      Object.assign ||
-      function(target) {
-        for (var i = 1; i < arguments.length; i++) {
-          var source = arguments[i]
+    _extends = Object.assign || function (target) {
+      for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i];
 
-          for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-              target[key] = source[key]
-            }
+        for (var key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
           }
         }
-
-        return target
       }
 
-    return _extends.apply(this, arguments)
+      return target;
+    };
+
+    return _extends.apply(this, arguments);
   }
 
   function _objectWithoutPropertiesLoose(source, excluded) {
-    if (source == null) return {}
-    var target = {}
-    var sourceKeys = Object.keys(source)
-    var key, i
+    if (source == null) return {};
+    var target = {};
+    var sourceKeys = Object.keys(source);
+    var key, i;
 
     for (i = 0; i < sourceKeys.length; i++) {
-      key = sourceKeys[i]
-      if (excluded.indexOf(key) >= 0) continue
-      target[key] = source[key]
+      key = sourceKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      target[key] = source[key];
     }
 
-    return target
+    return target;
   }
 
   // shared logic between components that use either render prop,
   // children render function, or component prop
-  function renderComponent(props, lazyProps, name) {
+  function renderComponent(props, name) {
     var render = props.render,
-      children = props.children,
-      component = props.component,
-      rest = _objectWithoutPropertiesLoose(props, [
-        'render',
-        'children',
-        'component'
-      ])
+        children = props.children,
+        component = props.component,
+        rest = _objectWithoutPropertiesLoose(props, ["render", "children", "component"]);
 
     if (component) {
-      return React.createElement(
-        component,
-        _extends({}, rest, {}, lazyProps, {
-          children: children,
-          render: render
-        })
-      )
+      return React.createElement(component, _extends({}, rest, {
+        children: children,
+        render: render
+      }));
     }
 
     if (render) {
-      return render(
-        children === undefined
-          ? Object.assign(lazyProps, rest) // inject children back in
-          : Object.assign(lazyProps, rest, {
-              children: children
-            })
-      )
+      return render(children === undefined ? rest : _extends({}, rest, {
+        children: children
+      })); // inject children back in
     }
 
     if (typeof children !== 'function') {
-      throw new Error(
-        'Must specify either a render prop, a render function as children, or a component prop to ' +
-          name
-      )
+      throw new Error("Must specify either a render prop, a render function as children, or a component prop to " + name);
     }
 
-    return children(Object.assign(lazyProps, rest))
+    return children(rest);
   }
 
   function useWhenValueChanges(value, callback, isEqual) {
     if (isEqual === void 0) {
       isEqual = function isEqual(a, b) {
-        return a === b
-      }
+        return a === b;
+      };
     }
 
-    var previous = React__default.useRef(value)
-    React__default.useEffect(function() {
+    var previous = React__default.useRef(value);
+    React__default.useEffect(function () {
       if (!isEqual(value, previous.current)) {
-        callback()
-        previous.current = value
+        callback();
+        previous.current = value;
       }
-    })
+    });
   }
 
   /**
@@ -121,156 +97,84 @@
    */
 
   function useConstant(init) {
-    var ref = React__default.useRef()
+    var ref = React__default.useRef();
 
     if (!ref.current) {
-      ref.current = init()
+      ref.current = init();
     }
 
-    return ref.current
+    return ref.current;
   }
 
   var shallowEqual = function shallowEqual(a, b) {
     if (a === b) {
-      return true
+      return true;
     }
 
     if (typeof a !== 'object' || !a || typeof b !== 'object' || !b) {
-      return false
+      return false;
     }
 
-    var keysA = Object.keys(a)
-    var keysB = Object.keys(b)
+    var keysA = Object.keys(a);
+    var keysB = Object.keys(b);
 
     if (keysA.length !== keysB.length) {
-      return false
+      return false;
     }
 
-    var bHasOwnProperty = Object.prototype.hasOwnProperty.bind(b)
+    var bHasOwnProperty = Object.prototype.hasOwnProperty.bind(b);
 
     for (var idx = 0; idx < keysA.length; idx++) {
-      var key = keysA[idx]
+      var key = keysA[idx];
 
       if (!bHasOwnProperty(key) || a[key] !== b[key]) {
-        return false
+        return false;
       }
     }
 
-    return true
-  }
+    return true;
+  };
 
   var isSyntheticEvent = function isSyntheticEvent(candidate) {
-    return !!(candidate && typeof candidate.stopPropagation === 'function')
-  }
+    return !!(candidate && typeof candidate.stopPropagation === 'function');
+  };
 
-  var ReactFinalFormContext = React.createContext()
+  var ReactFinalFormContext = React.createContext();
 
   function useLatest(value) {
-    var ref = React__default.useRef(value)
-    React__default.useEffect(function() {
-      ref.current = value
-    })
-    return ref
+    var ref = React__default.useRef(value);
+    React__default.useEffect(function () {
+      ref.current = value;
+    });
+    return ref;
   }
 
-  var version = '6.3.0'
-
-  var addLazyState = function addLazyState(dest, state, keys) {
-    keys.forEach(function(key) {
-      Object.defineProperty(dest, key, {
-        get: function get() {
-          return state[key]
-        }
-      })
-    })
-  }
-
-  var addLazyFormState = function addLazyFormState(dest, state) {
-    return addLazyState(dest, state, [
-      'active',
-      'dirty',
-      'dirtyFields',
-      'dirtySinceLastSubmit',
-      'error',
-      'errors',
-      'hasSubmitErrors',
-      'hasValidationErrors',
-      'initialValues',
-      'invalid',
-      'modified',
-      'pristine',
-      'submitError',
-      'submitErrors',
-      'submitFailed',
-      'submitSucceeded',
-      'submitting',
-      'touched',
-      'valid',
-      'validating',
-      'values',
-      'visited'
-    ])
-  }
-  var addLazyFieldMetaState = function addLazyFieldMetaState(dest, state) {
-    return addLazyState(dest, state, [
-      'active',
-      'data',
-      'dirty',
-      'dirtySinceLastSubmit',
-      'error',
-      'initial',
-      'invalid',
-      'length',
-      'modified',
-      'pristine',
-      'submitError',
-      'submitFailed',
-      'submitSucceeded',
-      'submitting',
-      'touched',
-      'valid',
-      'validating',
-      'visited'
-    ])
-  }
+  var version = "6.3.0";
 
   var versions = {
     'final-form': finalForm.version,
     'react-final-form': version
-  }
-  var all = finalForm.formSubscriptionItems.reduce(function(result, key) {
-    result[key] = true
-    return result
-  }, {})
+  };
+  var all = finalForm.formSubscriptionItems.reduce(function (result, key) {
+    result[key] = true;
+    return result;
+  }, {});
 
   function ReactFinalForm(_ref) {
     var debug = _ref.debug,
-      decorators = _ref.decorators,
-      destroyOnUnregister = _ref.destroyOnUnregister,
-      alternateFormApi = _ref.form,
-      initialValues = _ref.initialValues,
-      initialValuesEqual = _ref.initialValuesEqual,
-      keepDirtyOnReinitialize = _ref.keepDirtyOnReinitialize,
-      mutators = _ref.mutators,
-      onSubmit = _ref.onSubmit,
-      _ref$subscription = _ref.subscription,
-      subscription = _ref$subscription === void 0 ? all : _ref$subscription,
-      validate = _ref.validate,
-      validateOnBlur = _ref.validateOnBlur,
-      rest = _objectWithoutPropertiesLoose(_ref, [
-        'debug',
-        'decorators',
-        'destroyOnUnregister',
-        'form',
-        'initialValues',
-        'initialValuesEqual',
-        'keepDirtyOnReinitialize',
-        'mutators',
-        'onSubmit',
-        'subscription',
-        'validate',
-        'validateOnBlur'
-      ])
+        decorators = _ref.decorators,
+        destroyOnUnregister = _ref.destroyOnUnregister,
+        alternateFormApi = _ref.form,
+        initialValues = _ref.initialValues,
+        initialValuesEqual = _ref.initialValuesEqual,
+        keepDirtyOnReinitialize = _ref.keepDirtyOnReinitialize,
+        mutators = _ref.mutators,
+        onSubmit = _ref.onSubmit,
+        _ref$subscription = _ref.subscription,
+        subscription = _ref$subscription === void 0 ? all : _ref$subscription,
+        validate = _ref.validate,
+        validateOnBlur = _ref.validateOnBlur,
+        rest = _objectWithoutPropertiesLoose(_ref, ["debug", "decorators", "destroyOnUnregister", "form", "initialValues", "initialValuesEqual", "keepDirtyOnReinitialize", "mutators", "onSubmit", "subscription", "validate", "validateOnBlur"]);
 
     var config = {
       debug: debug,
@@ -281,57 +185,45 @@
       onSubmit: onSubmit,
       validate: validate,
       validateOnBlur: validateOnBlur
-    }
-    var form = useConstant(function() {
-      var f = alternateFormApi || finalForm.createForm(config) // pause validation until children register all fields on first render (unpaused in useEffect() below)
+    };
+    var form = useConstant(function () {
+      var f = alternateFormApi || finalForm.createForm(config);
+      f.pauseValidation();
+      return f;
+    }); // synchronously register and unregister to query form state for our subscription on first render
 
-      f.pauseValidation()
-      return f
-    }) // synchronously register and unregister to query form state for our subscription on first render
-
-    var _React$useState = React.useState(function() {
-        var initialState = {}
-        form.subscribe(function(state) {
-          initialState = state
-        }, subscription)()
-        return initialState
-      }),
-      state = _React$useState[0],
-      setState = _React$useState[1] // save a copy of state that can break through the closure
+    var _React$useState = React.useState(function () {
+      var initialState = {};
+      form.subscribe(function (state) {
+        initialState = state;
+      }, subscription)();
+      return initialState;
+    }),
+        state = _React$useState[0],
+        setState = _React$useState[1]; // save a copy of state that can break through the closure
     // on the shallowEqual() line below.
 
-    var stateRef = useLatest(state)
-    React.useEffect(
-      function() {
-        // We have rendered, so all fields are now registered, so we can unpause validation
-        form.isValidationPaused() && form.resumeValidation()
-        var unsubscriptions = [
-          form.subscribe(function(s) {
-            if (!shallowEqual(s, stateRef.current)) {
-              setState(s)
-            }
-          }, subscription)
-        ].concat(
-          decorators
-            ? decorators.map(function(decorator) {
-                return (
-                  // this noop ternary is to appease the flow gods
-                  // istanbul ignore next
-                  decorator(form)
-                )
-              })
-            : []
-        )
-        return function() {
-          form.pauseValidation() // pause validation so we don't revalidate on every field deregistration
 
-          unsubscriptions.reverse().forEach(function(unsubscribe) {
-            return unsubscribe()
-          }) // don't need to resume validation here; either unmounting, or will re-run this hook with new deps
-        } // eslint-disable-next-line react-hooks/exhaustive-deps
-      },
-      [decorators]
-    ) // warn about decorator changes
+    var stateRef = useLatest(state);
+    React.useEffect(function () {
+      // We have rendered, so all fields are no registered, so we can unpause validation
+      form.isValidationPaused() && form.resumeValidation();
+      var unsubscriptions = [form.subscribe(function (s) {
+        if (!shallowEqual(s, stateRef.current)) {
+          setState(s);
+        }
+      }, subscription)].concat(decorators ? decorators.map(function (decorator) {
+        return (// this noop ternary is to appease the flow gods
+          // istanbul ignore next
+          decorator(form)
+        );
+      }) : []);
+      return function () {
+        unsubscriptions.forEach(function (unsubscribe) {
+          return unsubscribe();
+        });
+      }; // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [decorators]); // warn about decorator changes
     // istanbul ignore next
 
     {
@@ -339,164 +231,138 @@
       // case we can be certain that you're not going to be changing your
       // NODE_ENV between renders, so this is safe.
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      useWhenValueChanges(
-        decorators,
-        function() {
-          console.error(
-            'Form decorators should not change from one render to the next as new values will be ignored'
-          )
-        },
-        shallowEqual
-      )
+      useWhenValueChanges(decorators, function () {
+        console.error('Form decorators should not change from one render to the next as new values will be ignored');
+      }, shallowEqual);
     } // allow updatable config
 
-    useWhenValueChanges(debug, function() {
-      form.setConfig('debug', debug)
-    })
-    useWhenValueChanges(destroyOnUnregister, function() {
-      form.destroyOnUnregister = !!destroyOnUnregister
-    })
-    useWhenValueChanges(
-      initialValues,
-      function() {
-        form.setConfig('initialValues', initialValues)
-      },
-      initialValuesEqual || shallowEqual
-    )
-    useWhenValueChanges(keepDirtyOnReinitialize, function() {
-      form.setConfig('keepDirtyOnReinitialize', keepDirtyOnReinitialize)
-    })
-    useWhenValueChanges(mutators, function() {
-      form.setConfig('mutators', mutators)
-    })
-    useWhenValueChanges(onSubmit, function() {
-      form.setConfig('onSubmit', onSubmit)
-    })
-    useWhenValueChanges(validate, function() {
-      form.setConfig('validate', validate)
-    })
-    useWhenValueChanges(validateOnBlur, function() {
-      form.setConfig('validateOnBlur', validateOnBlur)
-    })
+
+    useWhenValueChanges(debug, function () {
+      form.setConfig('debug', debug);
+    });
+    useWhenValueChanges(destroyOnUnregister, function () {
+      form.destroyOnUnregister = !!destroyOnUnregister;
+    });
+    useWhenValueChanges(initialValues, function () {
+      form.setConfig('initialValues', initialValues);
+    }, initialValuesEqual || shallowEqual);
+    useWhenValueChanges(keepDirtyOnReinitialize, function () {
+      form.setConfig('keepDirtyOnReinitialize', keepDirtyOnReinitialize);
+    });
+    useWhenValueChanges(mutators, function () {
+      form.setConfig('mutators', mutators);
+    });
+    useWhenValueChanges(onSubmit, function () {
+      form.setConfig('onSubmit', onSubmit);
+    });
+    useWhenValueChanges(validate, function () {
+      form.setConfig('validate', validate);
+    });
+    useWhenValueChanges(validateOnBlur, function () {
+      form.setConfig('validateOnBlur', validateOnBlur);
+    });
 
     var handleSubmit = function handleSubmit(event) {
       if (event) {
         // sometimes not true, e.g. React Native
         if (typeof event.preventDefault === 'function') {
-          event.preventDefault()
+          event.preventDefault();
         }
 
         if (typeof event.stopPropagation === 'function') {
           // prevent any outer forms from receiving the event too
-          event.stopPropagation()
+          event.stopPropagation();
         }
       }
 
-      return form.submit()
-    }
+      return form.submit();
+    };
 
-    var renderProps = {
+    var renderProps = _extends({}, state, {
       form: _extends({}, form, {
         reset: function reset(eventOrValues) {
           if (isSyntheticEvent(eventOrValues)) {
             // it's a React SyntheticEvent, call reset with no arguments
-            form.reset()
+            form.reset();
           } else {
-            form.reset(eventOrValues)
+            form.reset(eventOrValues);
           }
         }
       }),
       handleSubmit: handleSubmit
-    }
-    addLazyFormState(renderProps, state)
-    return React.createElement(
-      ReactFinalFormContext.Provider,
-      {
-        value: form
-      },
-      renderComponent(
-        _extends({}, rest, {
-          __versions: versions
-        }),
-        renderProps,
-        'ReactFinalForm'
-      )
-    )
+    });
+
+    return React.createElement(ReactFinalFormContext.Provider, {
+      value: form
+    }, renderComponent(_extends({}, rest, renderProps, {
+      __versions: versions
+    }), 'ReactFinalForm'));
   }
 
   function useForm(componentName) {
-    var form = React.useContext(ReactFinalFormContext)
+    var form = React.useContext(ReactFinalFormContext);
 
     if (!form) {
-      throw new Error(
-        (componentName || 'useForm') +
-          ' must be used inside of a <Form> component'
-      )
+      throw new Error((componentName || 'useForm') + " must be used inside of a <Form> component");
     }
 
-    return form
+    return form;
   }
 
   function useFormState(_temp) {
     var _ref = _temp === void 0 ? {} : _temp,
-      onChange = _ref.onChange,
-      _ref$subscription = _ref.subscription,
-      subscription = _ref$subscription === void 0 ? all : _ref$subscription
+        onChange = _ref.onChange,
+        _ref$subscription = _ref.subscription,
+        subscription = _ref$subscription === void 0 ? all : _ref$subscription;
 
-    var form = useForm('useFormState')
-    var firstRender = React.useRef(true)
-    var onChangeRef = React.useRef(onChange)
-    onChangeRef.current = onChange // synchronously register and unregister to query field state for our subscription on first render
+    var form = useForm('useFormState');
+    var firstRender = React.useRef(true); // synchronously register and unregister to query field state for our subscription on first render
 
-    var _React$useState = React.useState(function() {
-        var initialState = {}
-        form.subscribe(function(state) {
-          initialState = state
-        }, subscription)()
+    var _React$useState = React.useState(function () {
+      var initialState = {};
+      form.subscribe(function (state) {
+        initialState = state;
+      }, subscription)();
 
-        if (onChange) {
-          onChange(initialState)
-        }
+      if (onChange) {
+        onChange(initialState);
+      }
 
-        return initialState
-      }),
-      state = _React$useState[0],
-      setState = _React$useState[1]
+      return initialState;
+    }),
+        state = _React$useState[0],
+        setState = _React$useState[1];
 
-    React.useEffect(
-      function() {
-        return form.subscribe(function(newState) {
-          if (firstRender.current) {
-            firstRender.current = false
-          } else {
-            setState(newState)
+    React.useEffect(function () {
+      return form.subscribe(function (newState) {
+        if (firstRender.current) {
+          firstRender.current = false;
+        } else {
+          setState(newState);
 
-            if (onChangeRef.current) {
-              onChangeRef.current(newState)
-            }
+          if (onChange) {
+            onChange(newState);
           }
-        }, subscription)
-      }, // eslint-disable-next-line react-hooks/exhaustive-deps
-      []
-    )
-    var lazyState = {}
-    addLazyFormState(lazyState, state)
-    return lazyState
+        }
+      }, subscription);
+    }, // eslint-disable-next-line react-hooks/exhaustive-deps
+    []);
+    return state;
   }
 
   function FormSpy(_ref) {
     var onChange = _ref.onChange,
-      subscription = _ref.subscription,
-      rest = _objectWithoutPropertiesLoose(_ref, ['onChange', 'subscription'])
+        subscription = _ref.subscription,
+        rest = _objectWithoutPropertiesLoose(_ref, ["onChange", "subscription"]);
 
-    var reactFinalForm = useForm('FormSpy')
+    var reactFinalForm = useForm('FormSpy');
     var state = useFormState({
       onChange: onChange,
       subscription: subscription
-    })
+    });
 
     if (onChange) {
-      return null
+      return null;
     }
 
     var renderProps = {
@@ -504,65 +370,48 @@
         reset: function reset(eventOrValues) {
           if (isSyntheticEvent(eventOrValues)) {
             // it's a React SyntheticEvent, call reset with no arguments
-            reactFinalForm.reset()
+            reactFinalForm.reset();
           } else {
-            reactFinalForm.reset(eventOrValues)
+            reactFinalForm.reset(eventOrValues);
           }
         }
       })
-    }
-    return renderComponent(
-      _extends({}, rest, {}, renderProps),
-      state,
-      'FormSpy'
-    )
+    };
+    return renderComponent(_extends({}, rest, state, renderProps), 'FormSpy');
   }
 
-  var isReactNative =
-    typeof window !== 'undefined' &&
-    window.navigator &&
-    window.navigator.product &&
-    window.navigator.product === 'ReactNative'
+  var isReactNative = typeof window !== 'undefined' && window.navigator && window.navigator.product && window.navigator.product === 'ReactNative';
 
   var getSelectedValues = function getSelectedValues(options) {
-    var result = []
+    var result = [];
 
     if (options) {
       for (var index = 0; index < options.length; index++) {
-        var option = options[index]
+        var option = options[index];
 
         if (option.selected) {
-          result.push(option.value)
+          result.push(option.value);
         }
       }
     }
 
-    return result
-  }
+    return result;
+  };
 
-  var getValue = function getValue(
-    event,
-    currentValue,
-    valueProp,
-    isReactNative
-  ) {
-    if (
-      !isReactNative &&
-      event.nativeEvent &&
-      event.nativeEvent.text !== undefined
-    ) {
-      return event.nativeEvent.text
+  var getValue = function getValue(event, currentValue, valueProp, isReactNative) {
+    if (!isReactNative && event.nativeEvent && event.nativeEvent.text !== undefined) {
+      return event.nativeEvent.text;
     }
 
     if (isReactNative && event.nativeEvent) {
-      return event.nativeEvent.text
+      return event.nativeEvent.text;
     }
 
-    var detypedEvent = event
+    var detypedEvent = event;
     var _detypedEvent$target = detypedEvent.target,
-      type = _detypedEvent$target.type,
-      value = _detypedEvent$target.value,
-      checked = _detypedEvent$target.checked
+        type = _detypedEvent$target.type,
+        value = _detypedEvent$target.value,
+        checked = _detypedEvent$target.checked;
 
     switch (type) {
       case 'checkbox':
@@ -570,320 +419,264 @@
           // we are maintaining an array, not just a boolean
           if (checked) {
             // add value to current array value
-            return Array.isArray(currentValue)
-              ? currentValue.concat(valueProp)
-              : [valueProp]
+            return Array.isArray(currentValue) ? currentValue.concat(valueProp) : [valueProp];
           } else {
             // remove value from current array value
             if (!Array.isArray(currentValue)) {
-              return currentValue
+              return currentValue;
             }
 
-            var index = currentValue.indexOf(valueProp)
+            var index = currentValue.indexOf(valueProp);
 
             if (index < 0) {
-              return currentValue
+              return currentValue;
             } else {
-              return currentValue
-                .slice(0, index)
-                .concat(currentValue.slice(index + 1))
+              return currentValue.slice(0, index).concat(currentValue.slice(index + 1));
             }
           }
         } else {
           // it's just a boolean
-          return !!checked
+          return !!checked;
         }
 
       case 'select-multiple':
-        return getSelectedValues(event.target.options)
+        return getSelectedValues(event.target.options);
 
       default:
-        return value
+        return value;
     }
-  }
+  };
 
-  var all$1 = finalForm.fieldSubscriptionItems.reduce(function(result, key) {
-    result[key] = true
-    return result
-  }, {})
+  var all$1 = finalForm.fieldSubscriptionItems.reduce(function (result, key) {
+    result[key] = true;
+    return result;
+  }, {});
 
   var defaultFormat = function defaultFormat(value, name) {
-    return value === undefined ? '' : value
-  }
+    return value === undefined ? '' : value;
+  };
 
   var defaultParse = function defaultParse(value, name) {
-    return value === '' ? undefined : value
-  }
+    return value === '' ? undefined : value;
+  };
 
-  var defaultIsEqual = function defaultIsEqual(a, b) {
-    return a === b
-  }
+  function useField(name, _temp) {
+    var _ref = _temp === void 0 ? {} : _temp,
+        afterSubmit = _ref.afterSubmit,
+        allowNull = _ref.allowNull,
+        beforeSubmit = _ref.beforeSubmit,
+        component = _ref.component,
+        defaultValue = _ref.defaultValue,
+        _ref$format = _ref.format,
+        format = _ref$format === void 0 ? defaultFormat : _ref$format,
+        formatOnBlur = _ref.formatOnBlur,
+        initialValue = _ref.initialValue,
+        isEqual = _ref.isEqual,
+        multiple = _ref.multiple,
+        _ref$parse = _ref.parse,
+        parse = _ref$parse === void 0 ? defaultParse : _ref$parse,
+        _ref$subscription = _ref.subscription,
+        subscription = _ref$subscription === void 0 ? all$1 : _ref$subscription,
+        type = _ref.type,
+        validate = _ref.validate,
+        validateFields = _ref.validateFields,
+        _value = _ref.value;
 
-  function useField(name, config) {
-    if (config === void 0) {
-      config = {}
-    }
+    var form = useForm('useField');
+    var validateRef = useLatest(validate);
+    var beforeSubmitRef = useLatest(function () {
+      if (formatOnBlur) {
+        var formatted = format(state.value, state.name);
 
-    var _config = config,
-      afterSubmit = _config.afterSubmit,
-      allowNull = _config.allowNull,
-      component = _config.component,
-      defaultValue = _config.defaultValue,
-      _config$format = _config.format,
-      format = _config$format === void 0 ? defaultFormat : _config$format,
-      formatOnBlur = _config.formatOnBlur,
-      initialValue = _config.initialValue,
-      multiple = _config.multiple,
-      _config$parse = _config.parse,
-      parse = _config$parse === void 0 ? defaultParse : _config$parse,
-      _config$subscription = _config.subscription,
-      subscription =
-        _config$subscription === void 0 ? all$1 : _config$subscription,
-      type = _config.type,
-      validateFields = _config.validateFields,
-      _value = _config.value
-    var form = useForm('useField')
-    var configRef = useLatest(config)
+        if (formatted !== state.value) {
+          state.change(formatted);
+        }
+      }
+
+      return beforeSubmit && beforeSubmit();
+    });
 
     var register = function register(callback) {
       return form.registerField(name, callback, subscription, {
         afterSubmit: afterSubmit,
         beforeSubmit: function beforeSubmit() {
-          var _configRef$current = configRef.current,
-            beforeSubmit = _configRef$current.beforeSubmit,
-            formatOnBlur = _configRef$current.formatOnBlur,
-            _configRef$current$fo = _configRef$current.format,
-            format =
-              _configRef$current$fo === void 0
-                ? defaultFormat
-                : _configRef$current$fo
-
-          if (formatOnBlur) {
-            var _ref = form.getFieldState(state.name),
-              value = _ref.value
-
-            var formatted = format(value, state.name)
-
-            if (formatted !== value) {
-              state.change(formatted)
-            }
-          }
-
-          return beforeSubmit && beforeSubmit()
+          return beforeSubmitRef.current();
         },
         defaultValue: defaultValue,
         getValidator: function getValidator() {
-          return configRef.current.validate
+          return validateRef.current;
         },
         initialValue: initialValue,
-        isEqual: function isEqual(a, b) {
-          return (configRef.current.isEqual || defaultIsEqual)(a, b)
-        },
+        isEqual: isEqual,
         validateFields: validateFields
-      })
-    }
+      });
+    };
 
-    var firstRender = React.useRef(true) // synchronously register and unregister to query field state for our subscription on first render
+    var firstRender = React.useRef(true); // synchronously register and unregister to query field state for our subscription on first render
 
-    var _React$useState = React.useState(function() {
-        var initialState = {} // temporarily disable destroyOnUnregister
+    var _React$useState = React.useState(function () {
+      var initialState = {}; // temporarily disable destroyOnUnregister
 
-        var destroyOnUnregister = form.destroyOnUnregister
-        form.destroyOnUnregister = false
-        register(function(state) {
-          initialState = state
-        })() // return destroyOnUnregister to its original value
+      var destroyOnUnregister = form.destroyOnUnregister;
+      form.destroyOnUnregister = false;
+      register(function (state) {
+        initialState = state;
+      })(); // return destroyOnUnregister to its original value
 
-        form.destroyOnUnregister = destroyOnUnregister
-        return initialState
-      }),
-      state = _React$useState[0],
-      setState = _React$useState[1]
+      form.destroyOnUnregister = destroyOnUnregister;
+      return initialState;
+    }),
+        state = _React$useState[0],
+        setState = _React$useState[1];
 
-    React.useEffect(
-      function() {
-        return register(function(state) {
-          if (firstRender.current) {
-            firstRender.current = false
-          } else {
-            setState(state)
-          }
-        })
-      }, // eslint-disable-next-line react-hooks/exhaustive-deps
-      [
-        name,
-        defaultValue, // If we want to allow inline fat-arrow field-level validation functions, we
-        // cannot reregister field every time validate function !==.
-        // validate,
-        initialValue // The validateFields array is often passed as validateFields={[]}, creating
-        // a !== new array every time. If it needs to be changed, a rerender/reregister
-        // can be forced by changing the key prop
-        // validateFields
-      ]
-    )
-    var handlers = {
-      onBlur: React.useCallback(
-        function(event) {
-          state.blur()
-
-          if (formatOnBlur) {
-            /**
-             * Here we must fetch the value directly from Final Form because we cannot
-             * trust that our `state` closure has the most recent value. This is a problem
-             * if-and-only-if the library consumer has called `onChange()` immediately
-             * before calling `onBlur()`, but before the field has had a chance to receive
-             * the value update from Final Form.
-             */
-            var fieldState = form.getFieldState(state.name)
-            state.change(format(fieldState.value, state.name))
-          }
-        }, // eslint-disable-next-line react-hooks/exhaustive-deps
-        [state.name, format, formatOnBlur]
-      ),
-      onChange: React.useCallback(
-        function(event) {
-          // istanbul ignore next
-          if (event && event.target) {
-            var targetType = event.target.type
-            var unknown =
-              ~['checkbox', 'radio', 'select-multiple'].indexOf(targetType) &&
-              !type
-
-            var _value2 =
-              targetType === 'select-multiple' ? state.value : _value
-
-            if (unknown) {
-              console.error(
-                'You must pass `type="' +
-                  (targetType === 'select-multiple' ? 'select' : targetType) +
-                  '"` prop to your Field(' +
-                  name +
-                  ') component.\n' +
-                  ("Without it we don't know how to unpack your `value` prop - " +
-                    (Array.isArray(_value2)
-                      ? '[' + _value2 + ']'
-                      : '"' + _value2 + '"') +
-                    '.')
-              )
-            }
-          }
-
-          var value =
-            event && event.target
-              ? getValue(event, state.value, _value, isReactNative)
-              : event
-          state.change(parse(value, name))
-        }, // eslint-disable-next-line react-hooks/exhaustive-deps
-        [_value, name, parse, state.change, state.value, type]
-      ),
-      onFocus: React.useCallback(function(event) {
-        state.focus() // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [])
-    }
-    var meta = {}
-    addLazyFieldMetaState(meta, state)
-
-    var input = _extends(
-      {
-        name: name,
-
-        get value() {
-          var value = state.value
-
-          if (formatOnBlur) {
-            if (component === 'input') {
-              value = defaultFormat(value)
-            }
-          } else {
-            value = format(value, name)
-          }
-
-          if (value === null && !allowNull) {
-            value = ''
-          }
-
-          if (type === 'checkbox' || type === 'radio') {
-            return _value
-          } else if (component === 'select' && multiple) {
-            return value || []
-          }
-
-          return value
-        },
-
-        get checked() {
-          if (type === 'checkbox') {
-            if (_value === undefined) {
-              return !!state.value
-            } else {
-              return !!(
-                Array.isArray(state.value) && ~state.value.indexOf(_value)
-              )
-            }
-          } else if (type === 'radio') {
-            return state.value === _value
-          }
-
-          return undefined
+    React.useEffect(function () {
+      return register(function (state) {
+        if (firstRender.current) {
+          firstRender.current = false;
+        } else {
+          setState(state);
         }
-      },
-      handlers
-    )
+      });
+    }, // eslint-disable-next-line react-hooks/exhaustive-deps
+    [name, defaultValue, // If we want to allow inline fat-arrow field-level validation functions, we
+    // cannot reregister field every time validate function !==.
+    // validate,
+    initialValue, isEqual // The validateFields array is often passed as validateFields={[]}, creating
+    // a !== new array every time. If it needs to be changed, a rerender/reregister
+    // can be forced by changing the key prop
+    // validateFields
+    ]);
+    var handlers = {
+      onBlur: React.useCallback(function (event) {
+        state.blur();
 
-    if (multiple) {
-      input.multiple = multiple
+        if (formatOnBlur) {
+          /**
+           * Here we must fetch the value directly from Final Form because we cannot
+           * trust that our `state` closure has the most recent value. This is a problem
+           * if-and-only-if the library consumer has called `onChange()` immediately
+           * before calling `onBlur()`, but before the field has had a chance to receive
+           * the value update from Final Form.
+           */
+          var fieldState = form.getFieldState(state.name); // this ternary is primarily to appease the Flow gods
+          // istanbul ignore next
+
+          state.change(format(fieldState ? fieldState.value : state.value, state.name));
+        }
+      }, // eslint-disable-next-line react-hooks/exhaustive-deps
+      [state.name, state.value, format, formatOnBlur]),
+      onChange: React.useCallback(function (event) {
+        // istanbul ignore next
+        if (event && event.target) {
+          var targetType = event.target.type;
+          var unknown = ~['checkbox', 'radio', 'select-multiple'].indexOf(targetType) && !type;
+
+          var _value2 = targetType === 'select-multiple' ? state.value : _value;
+
+          if (unknown) {
+            console.error("You must pass `type=\"" + (targetType === 'select-multiple' ? 'select' : targetType) + "\"` prop to your Field(" + name + ") component.\n" + ("Without it we don't know how to unpack your `value` prop - " + (Array.isArray(_value2) ? "[" + _value2 + "]" : "\"" + _value2 + "\"") + "."));
+          }
+        }
+
+        var value = event && event.target ? getValue(event, state.value, _value, isReactNative) : event;
+        state.change(parse(value, name));
+      }, // eslint-disable-next-line react-hooks/exhaustive-deps
+      [_value, name, parse, state.change, state.value, type]),
+      onFocus: React.useCallback(function (event) {
+        state.focus(); // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [])
+    };
+
+    var blur = state.blur,
+        change = state.change,
+        focus = state.focus,
+        value = state.value,
+        ignoreName = state.name,
+        otherState = _objectWithoutPropertiesLoose(state, ["blur", "change", "focus", "value", "name"]);
+
+    var meta = {
+      // this is to appease the Flow gods
+      active: otherState.active,
+      data: otherState.data,
+      dirty: otherState.dirty,
+      dirtySinceLastSubmit: otherState.dirtySinceLastSubmit,
+      error: otherState.error,
+      initial: otherState.initial,
+      invalid: otherState.invalid,
+      length: otherState.length,
+      modified: otherState.modified,
+      pristine: otherState.pristine,
+      submitError: otherState.submitError,
+      submitFailed: otherState.submitFailed,
+      submitSucceeded: otherState.submitSucceeded,
+      submitting: otherState.submitting,
+      touched: otherState.touched,
+      valid: otherState.valid,
+      validating: otherState.validating,
+      visited: otherState.visited
+    };
+
+    if (formatOnBlur) {
+      if (component === 'input') {
+        value = defaultFormat(value);
+      }
+    } else {
+      value = format(value, name);
     }
 
-    if (type !== undefined) {
-      input.type = type
+    if (value === null && !allowNull) {
+      value = '';
+    }
+
+    var input = _extends({
+      name: name,
+      value: value,
+      type: type
+    }, handlers);
+
+    if (type === 'checkbox') {
+      if (_value === undefined) {
+        input.checked = !!value;
+      } else {
+        input.checked = !!(Array.isArray(value) && ~value.indexOf(_value));
+        input.value = _value;
+      }
+    } else if (type === 'radio') {
+      input.checked = value === _value;
+      input.value = _value;
+    } else if (component === 'select' && multiple) {
+      input.value = input.value || [];
+      input.multiple = true;
     }
 
     var renderProps = {
       input: input,
       meta: meta // assign to force Flow check
-    }
-    return renderProps
+
+    };
+    return renderProps;
   }
 
   var Field = function Field(_ref) {
     var afterSubmit = _ref.afterSubmit,
-      allowNull = _ref.allowNull,
-      beforeSubmit = _ref.beforeSubmit,
-      children = _ref.children,
-      component = _ref.component,
-      defaultValue = _ref.defaultValue,
-      format = _ref.format,
-      formatOnBlur = _ref.formatOnBlur,
-      initialValue = _ref.initialValue,
-      isEqual = _ref.isEqual,
-      multiple = _ref.multiple,
-      name = _ref.name,
-      parse = _ref.parse,
-      subscription = _ref.subscription,
-      type = _ref.type,
-      validate = _ref.validate,
-      validateFields = _ref.validateFields,
-      value = _ref.value,
-      rest = _objectWithoutPropertiesLoose(_ref, [
-        'afterSubmit',
-        'allowNull',
-        'beforeSubmit',
-        'children',
-        'component',
-        'defaultValue',
-        'format',
-        'formatOnBlur',
-        'initialValue',
-        'isEqual',
-        'multiple',
-        'name',
-        'parse',
-        'subscription',
-        'type',
-        'validate',
-        'validateFields',
-        'value'
-      ])
+        allowNull = _ref.allowNull,
+        beforeSubmit = _ref.beforeSubmit,
+        children = _ref.children,
+        component = _ref.component,
+        defaultValue = _ref.defaultValue,
+        format = _ref.format,
+        formatOnBlur = _ref.formatOnBlur,
+        initialValue = _ref.initialValue,
+        isEqual = _ref.isEqual,
+        multiple = _ref.multiple,
+        name = _ref.name,
+        parse = _ref.parse,
+        subscription = _ref.subscription,
+        type = _ref.type,
+        validate = _ref.validate,
+        validateFields = _ref.validateFields,
+        value = _ref.value,
+        rest = _objectWithoutPropertiesLoose(_ref, ["afterSubmit", "allowNull", "beforeSubmit", "children", "component", "defaultValue", "format", "formatOnBlur", "initialValue", "isEqual", "multiple", "name", "parse", "subscription", "type", "validate", "validateFields", "value"]);
 
     var field = useField(name, {
       afterSubmit: afterSubmit,
@@ -903,56 +696,42 @@
       validate: validate,
       validateFields: validateFields,
       value: value
-    })
+    });
 
     if (typeof children === 'function') {
-      return children(_extends({}, field, {}, rest))
+      return children(_extends({}, field, rest));
     }
 
     if (typeof component === 'string') {
       // ignore meta, combine input with any other props
-      return React.createElement(
-        component,
-        _extends(
-          {},
-          field.input,
-          {
-            children: children
-          },
-          rest
-        )
-      )
+      return React.createElement(component, _extends({}, field.input, {
+        children: children
+      }, rest));
     }
 
-    return renderComponent(
-      _extends(
-        {
-          children: children,
-          component: component
-        },
-        rest
-      ),
-      field,
-      'Field(' + name + ')'
-    )
-  }
+    return renderComponent(_extends({}, field, {
+      children: children,
+      component: component
+    }, rest), "Field(" + name + ")");
+  };
 
   function withTypes() {
     return {
       Form: ReactFinalForm,
       FormSpy: FormSpy
-    }
+    };
   }
 
-  exports.Field = Field
-  exports.Form = ReactFinalForm
-  exports.FormSpy = FormSpy
-  exports.useField = useField
-  exports.useForm = useForm
-  exports.useFormState = useFormState
-  exports.version = version
-  exports.withTypes = withTypes
+  exports.Field = Field;
+  exports.Form = ReactFinalForm;
+  exports.FormSpy = FormSpy;
+  exports.useField = useField;
+  exports.useForm = useForm;
+  exports.useFormState = useFormState;
+  exports.version = version;
+  exports.withTypes = withTypes;
 
-  Object.defineProperty(exports, '__esModule', { value: true })
-})
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+}));
 //# sourceMappingURL=react-final-form.umd.js.map

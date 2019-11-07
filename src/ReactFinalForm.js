@@ -23,7 +23,6 @@ import type { FormRenderProps } from './types.js.flow'
 import ReactFinalFormContext from './context'
 import useLatest from './useLatest'
 import { version } from '../package.json'
-import { addLazyFormState } from './getters'
 
 export { version }
 
@@ -68,7 +67,6 @@ function ReactFinalForm<FormValues: FormValuesShape>({
 
   const form: FormApi<FormValues> = useConstant(() => {
     const f = alternateFormApi || createForm<FormValues>(config)
-    // pause validation until children register all fields on first render (unpaused in useEffect() below)
     f.pauseValidation()
     return f
   })
@@ -89,7 +87,7 @@ function ReactFinalForm<FormValues: FormValuesShape>({
   const stateRef = useLatest<FormState<FormValues>>(state)
 
   React.useEffect(() => {
-    // We have rendered, so all fields are now registered, so we can unpause validation
+    // We have rendered, so all fields are no registered, so we can unpause validation
     form.isValidationPaused() && form.resumeValidation()
     const unsubscriptions: Unsubscribe[] = [
       form.subscribe(s => {
@@ -107,9 +105,7 @@ function ReactFinalForm<FormValues: FormValuesShape>({
     ]
 
     return () => {
-      form.pauseValidation() // pause validation so we don't revalidate on every field deregistration
-      unsubscriptions.reverse().forEach(unsubscribe => unsubscribe())
-      // don't need to resume validation here; either unmounting, or will re-run this hook with new deps
+      unsubscriptions.forEach(unsubscribe => unsubscribe())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decorators])
@@ -178,6 +174,8 @@ function ReactFinalForm<FormValues: FormValuesShape>({
   }
 
   const renderProps: FormRenderProps<FormValues> = {
+    // assign to force Flow check
+    ...state,
     form: {
       ...form,
       reset: eventOrValues => {
@@ -191,16 +189,15 @@ function ReactFinalForm<FormValues: FormValuesShape>({
     },
     handleSubmit
   }
-  addLazyFormState(renderProps, state)
   return React.createElement(
     ReactFinalFormContext.Provider,
     { value: form },
     renderComponent(
       {
         ...rest,
+        ...renderProps,
         __versions: versions
       },
-      renderProps,
       'ReactFinalForm'
     )
   )
