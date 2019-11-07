@@ -80,30 +80,24 @@ function useConstant(init) {
 var shallowEqual = function shallowEqual(a, b) {
   if (a === b) {
     return true;
-  }
+  } // if (typeof a !== 'object' || !a || typeof b !== 'object' || !b) {
+  //   return false
+  // }
+  // var keysA = Object.keys(a)
+  // var keysB = Object.keys(b)
+  // if (keysA.length !== keysB.length) {
+  //   return false
+  // }
+  // var bHasOwnProperty = Object.prototype.hasOwnProperty.bind(b)
+  // for (var idx = 0; idx < keysA.length; idx++) {
+  //   var key = keysA[idx]
+  //   if (!bHasOwnProperty(key) || a[key] !== b[key]) {
+  //     return false
+  //   }
+  // }
 
-  if (typeof a !== 'object' || !a || typeof b !== 'object' || !b) {
-    return false;
-  }
 
-  var keysA = Object.keys(a);
-  var keysB = Object.keys(b);
-
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-
-  var bHasOwnProperty = Object.prototype.hasOwnProperty.bind(b);
-
-  for (var idx = 0; idx < keysA.length; idx++) {
-    var key = keysA[idx];
-
-    if (!bHasOwnProperty(key) || a[key] !== b[key]) {
-      return false;
-    }
-  }
-
-  return true;
+  return a && b ? JSON.stringify(a) === JSON.stringify(b) : a === b;
 };
 
 var isSyntheticEvent = function isSyntheticEvent(candidate) {
@@ -172,7 +166,6 @@ function ReactFinalForm(_ref) {
   }),
       state = _React$useState[0],
       setState = _React$useState[1]; // save a copy of state that can break through the closure
-  // on the shallowEqual() line below.
 
 
   var stateRef = useLatest(state);

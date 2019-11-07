@@ -124,6 +124,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.4.5",
+    "lodash": "^4.17.15",
     "ts-essentials": "^2.0.8"
   }
 }

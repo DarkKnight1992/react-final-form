@@ -17,7 +17,8 @@ import type { FormProps as Props } from './types'
 import renderComponent from './renderComponent'
 import useWhenValueChanges from './useWhenValueChanges'
 import useConstant from './useConstant'
-import shallowEqual from './shallowEqual'
+import shallowEqual from './shallowEqual';
+// import { isEqual as isFormEqual } from "lodash";
 import isSyntheticEvent from './isSyntheticEvent'
 import type { FormRenderProps } from './types.js.flow'
 import ReactFinalFormContext from './context'
@@ -25,6 +26,7 @@ import useLatest from './useLatest'
 import { version } from '../package.json'
 
 export { version }
+
 
 const versions = {
   'final-form': ffVersion,
@@ -54,6 +56,7 @@ function ReactFinalForm<FormValues: FormValuesShape>({
   validateOnBlur,
   ...rest
 }: Props<FormValues>) {
+
   const config: Config<FormValues> = {
     debug,
     destroyOnUnregister,
@@ -83,7 +86,6 @@ function ReactFinalForm<FormValues: FormValuesShape>({
   )
 
   // save a copy of state that can break through the closure
-  // on the shallowEqual() line below.
   const stateRef = useLatest<FormState<FormValues>>(state)
 
   React.useEffect(() => {
