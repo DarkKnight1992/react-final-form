@@ -14,7 +14,7 @@ import useForm from './useForm'
 import useLatest from './useLatest'
 import { useEffect, useRef } from 'react';
 
-export function usePrevious(input) {
+export function usePrevious(input: ?any) {
   const ref = useRef();
   useEffect(() => {
     ref.current = input;
@@ -22,9 +22,9 @@ export function usePrevious(input) {
   return ref.current;
 }
 
-export function compare(prevInput, currInput) {
-  const prevValue = prevInput && prevInput.value ? JSON.stringify(prevInput.value) : null;
-  const currValue = currInput && currInput.value? JSON.stringify(currInput.value) : null;
+export function compare(prevInput: ?any, currInput: ?any) {
+  const prevValue = prevInput ? JSON.stringify(prevInput) : null;
+  const currValue = currInput ? JSON.stringify(currInput) : null;
   return prevValue !== currValue;
 }
 
@@ -130,8 +130,8 @@ function useField<FormValues: FormValuesShape>(
     ]
   )
 
-  const prevState = usePrevious({value: state.value})
-  const prevValue = usePrevious({value: _value})
+  const prevState = usePrevious(state.value)
+  const prevValue = usePrevious(_value)
 
   const handlers = {
     onBlur: React.useCallback(

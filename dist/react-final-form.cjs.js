@@ -418,6 +418,18 @@ var getValue = function getValue(event, currentValue, valueProp, isReactNative) 
   }
 };
 
+function usePrevious(input) {
+  var ref = React.useRef();
+  React.useEffect(function () {
+    ref.current = input;
+  });
+  return ref.current;
+}
+function compare(prevInput, currInput) {
+  var prevValue = prevInput ? JSON.stringify(prevInput) : null;
+  var currValue = currInput ? JSON.stringify(currInput) : null;
+  return prevValue !== currValue;
+}
 var all$1 = finalForm.fieldSubscriptionItems.reduce(function (result, key) {
   result[key] = true;
   return result;
@@ -517,6 +529,8 @@ function useField(name, _temp) {
   // can be forced by changing the key prop
   // validateFields
   ]);
+  var prevState = usePrevious(state.value);
+  var prevValue = usePrevious(_value);
   var handlers = {
     onBlur: React.useCallback(function (event) {
       state.blur();
@@ -535,7 +549,7 @@ function useField(name, _temp) {
         state.change(format(fieldState ? fieldState.value : state.value, state.name));
       }
     }, // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.name, state.value, format, formatOnBlur]),
+    [state.name, compare(prevState, state.value), format, formatOnBlur]),
     onChange: React.useCallback(function (event) {
       // istanbul ignore next
       if (process.env.NODE_ENV !== 'production' && event && event.target) {
@@ -552,7 +566,7 @@ function useField(name, _temp) {
       var value = event && event.target ? getValue(event, state.value, _value, isReactNative) : event;
       state.change(parse(value, name));
     }, // eslint-disable-next-line react-hooks/exhaustive-deps
-    [_value, name, parse, state.change, state.value, type]),
+    [compare(prevValue, _value), name, parse, state.change, compare(prevState, state.value), type]),
     onFocus: React.useCallback(function (event) {
       state.focus(); // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
