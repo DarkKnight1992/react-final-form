@@ -12,6 +12,22 @@ import isReactNative from './isReactNative'
 import getValue from './getValue'
 import useForm from './useForm'
 import useLatest from './useLatest'
+import { useEffect, useRef } from 'react';
+
+export function usePrevious(input) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = input;
+  });
+  return ref.current;
+}
+
+export function compare(prevInput, currInput) {
+  const prevValue = prevInput && prevInput.value ? JSON.stringify(prevInput.value) : null;
+  const currValue = currInput && currInput.value? JSON.stringify(currInput.value) : null;
+  return prevValue !== currValue;
+}
+
 
 const all: FieldSubscription = fieldSubscriptionItems.reduce((result, key) => {
   result[key] = true
@@ -114,6 +130,9 @@ function useField<FormValues: FormValuesShape>(
     ]
   )
 
+  const prevState = usePrevious({value: state.value})
+  const prevValue = usePrevious({value: _value})
+
   const handlers = {
     onBlur: React.useCallback(
       (event: ?SyntheticFocusEvent<*>) => {
@@ -135,7 +154,7 @@ function useField<FormValues: FormValuesShape>(
         }
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [state.name, state.value, format, formatOnBlur]
+      [state.name, compare(prevState, state.value), format, formatOnBlur]
     ),
     onChange: React.useCallback(
       (event: SyntheticInputEvent<*> | any) => {
@@ -168,7 +187,7 @@ function useField<FormValues: FormValuesShape>(
         state.change(parse(value, name))
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [_value, name, parse, state.change, state.value, type]
+      [compare(prevValue, _value) , name, parse, state.change, compare(prevState, state.value), type]
     ),
     onFocus: React.useCallback((event: ?SyntheticFocusEvent<*>) => {
       state.focus()
